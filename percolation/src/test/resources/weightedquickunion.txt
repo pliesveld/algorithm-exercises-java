@@ -1,0 +1,40 @@
+PercolationStats N=2 T=100
+mean                      = 0.690000
+stddev                    = 0.107309
+95% confidence interval   = 0.687743 0.692257
+running time              = 0.003000
+PercolationStats N=4 T=100
+mean                      = 0.652500
+stddev                    = 0.117623
+95% confidence interval   = 0.649788 0.655212
+running time              = 0.003000
+PercolationStats N=8 T=100
+mean                      = 0.606406
+stddev                    = 0.090721
+95% confidence interval   = 0.604793 0.608019
+running time              = 0.007000
+PercolationStats N=16 T=100
+mean                      = 0.619453
+stddev                    = 0.067622
+95% confidence interval   = 0.618557 0.620349
+running time              = 0.011000
+PercolationStats N=32 T=100
+mean                      = 0.607441
+stddev                    = 0.042235
+95% confidence interval   = 0.607092 0.607791
+running time              = 0.022000
+PercolationStats N=64 T=100
+mean                      = 0.596252
+stddev                    = 0.023479
+95% confidence interval   = 0.596144 0.596360
+running time              = 0.046000
+PercolationStats N=128 T=100
+mean                      = 0.596667
+stddev                    = 0.014740
+95% confidence interval   = 0.596625 0.596710
+running time              = 0.117000
+PercolationStats N=256 T=100
+mean                      = 0.593566
+stddev                    = 0.007461
+95% confidence interval   = 0.593555 0.593576
+running time              = 0.394000
