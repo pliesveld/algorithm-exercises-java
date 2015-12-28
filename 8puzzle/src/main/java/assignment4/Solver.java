@@ -7,6 +7,68 @@ import java.lang.*;
 import edu.princeton.cs.algs4.MinPQ;
 import edu.princeton.cs.algs4.StdOut;
 
+/**
+ * The 8puzzle contains a grid of tiles numbered from 1 on up, with one tile missing.  The player advances the board state by sliding a tile 
+ * horizontally or vertically into this empty space.  In this representation, the zero tile is considered to be the 
+ * blank tile, and it can be swapped with the tile that is immedaitely adjacent. 
+ *
+ *   1 |  2 |  3 |  4
+ * ------------------
+ *   5 |  6 |  7 |  0
+ * ------------------
+ *   9 | 10 | 11 |  8
+ * ------------------
+ *  13 | 14 | 15 | 12
+ *
+ *
+ * There are three possible actions, the next board states are:
+ *
+ *   1 |  2 |  3 |  4
+ * ------------------
+ *   5 |  6 |  0 |  7
+ * ------------------
+ *   9 | 10 | 11 |  8
+ * ------------------
+ *  13 | 14 | 15 | 12
+ *
+ *   1 |  2 |  3 |  4
+ * ------------------
+ *   5 |  6 |  7 |  8
+ * ------------------
+ *   9 | 10 | 11 |  0
+ * ------------------
+ *  13 | 14 | 15 | 12
+ *
+ *   1 |  2 |  3 |  0
+ * ------------------
+ *   5 |  6 |  7 |  4
+ * ------------------
+ *   9 | 10 | 11 |  8
+ * ------------------
+ *  13 | 14 | 15 | 12
+ *
+ *
+ * The 8puzzle solution is solved by performing an A* search of the initial board until 
+ * a solution is found.  The A* search maintains a priority queue of of search nodes, ordered by
+ * their cost. 
+ *
+ * A SearchNode maintains a state of the particular instance of an 8puzzle board.  The number of moves that
+ * it were taken to arrive at this baord from the initial board.  The previous search node, and the priority or cost
+ * of a search node.
+ *
+ * To guide the search space of the solution, a heuristics is used when calculating the prioirty of a search node.
+ * A heursitic must satisfy two properties, it must never overestimate the cost of reaching the goal, and satisify
+ * the triangle inequality.
+ *
+ * We never visit the parent's board from the children boards of the current board.
+ *
+ * We use the manhattan distance, an approximation of the number of moves that would be needed to arrive at the 
+ * solution from a given board state, plus the number of moves from the intial state as the priority of the search node.
+ *
+ * If a tie exists, the search node's hamming distance is used as it's priority.
+ *
+ * 
+ */
 public class Solver
 {
 
@@ -75,6 +137,10 @@ public class Solver
     
     }
 
+    /**
+     * Maintains leaf node of the search tree, and builds solution of moves  
+     * required to reach the goal from the initial board.
+     */
     private class Solution
     {
         private SearchNode end;
@@ -119,7 +185,10 @@ public class Solver
         }
     }
 
-    private static void report(SearchNode n)
+    /**
+     * Utility function for reporting contents of a search node
+     */
+     private static void report(SearchNode n)
     {
             StdOut.println(
                     "\nPriority:  " + n.priority +
@@ -128,6 +197,9 @@ public class Solver
                     n.board());
     }
 
+    /**
+     * Utility function for reporting contents of a priority queue of SearchNodes
+     */
     private static void report(MinPQ<SearchNode> pq)
     {
         for(SearchNode it : pq)
@@ -153,6 +225,9 @@ public class Solver
         SearchNode u_node = null;
 
         queue.insert(root);
+        /* 
+         * If twin board solution is found, then none exists for initial board.
+         */
         queue.insert(root_twin);
 
         while(!queue.isEmpty())
@@ -168,6 +243,9 @@ public class Solver
 
             for(Board v_board : u_board.neighbors())
             {
+                /*
+                 * Critial Optimization.  Ignore parent's board from children.
+                 */
                 if(u_node.parent() != null)
                     if(u_node.parent().board().equals(v_board))
                         continue;

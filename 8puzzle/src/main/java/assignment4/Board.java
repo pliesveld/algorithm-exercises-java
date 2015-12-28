@@ -18,16 +18,18 @@ import edu.princeton.cs.algs4.*;
  */
 public class Board
 {
-    private short N;
-    private short[][] grid;
+    private short N;           // Board dimension
+    private short[][] grid;    // 2-Dimension array representing 8puzzle
     
+    // Location of the Zero tile is cached so subsequent operations generating new boards
     private final int zero_row;
     private final int zero_col;
 
-
-     private final boolean is_goal;
-     private final int hammingSum;
-     private final int manhattanSum;
+    // Cached values for determing if the board is in a goal state, the hamming sum, 
+    // and the manhattan sum.
+    private final boolean is_goal;
+    private final int hammingSum;
+    private final int manhattanSum;
 
 
    /** 
@@ -165,8 +167,11 @@ public class Board
 
     /**
      * Swap elements positioned in the multidemsional array
-     * @board array to manipulate
-     * @
+     * @param board, a 2D array of shorts, to manipulate
+     * @param lhs_row first position's row
+     * @param lhs_col first position's column
+     * @param rhs_row second position's row
+     * @param rhs_col second position's column
      */
     private static void swap_pos(short[][] board, int lhs_row, int lhs_col, int rhs_row, int rhs_col)
     {
@@ -177,14 +182,18 @@ public class Board
 
     /**
       * Swap elements in an integer array.  Used by twin()
-     */
+      * @param board, a 2D array of shorts, to manipulate
+      * @param lhs_row first position's row
+      * @param lhs_col first position's column
+      * @param rhs_row second position's row
+      * @param rhs_col second position's column
+      */
     private static void swap_pos(int[][] board, int lhs_row, int lhs_col, int rhs_row, int rhs_col)
     {
         int temp = board[lhs_row][lhs_col];
         board[lhs_row][lhs_col] = board[rhs_row][rhs_col];
         board[rhs_row][rhs_col] = temp;
     }
-
 
 
     /** 
@@ -222,6 +231,8 @@ public class Board
     /**
      * A board that is obtained by exchanging any pair of blocks
      * 0 is not considered a block.
+     * 
+     * A twin board is constructed for determining the feasability of a finding a solution for a given board.
      */
     public Board twin()
     {
@@ -299,6 +310,9 @@ public class Board
     /**
      * List of neighboring boards, remembers the last action and
      * does not return that board.
+     *
+     * @returns An iterator over the the neighboring boards.  A neighboring board
+     * is a board with the zero tile swapped with an adjacent tile.  W / N / E / S
      */
     public Iterable<Board> neighbors()
     {
@@ -306,7 +320,7 @@ public class Board
 
         int n_row = -1, n_col = -1;
 
-        int[][] offsets = {
+        final int[][] offsets = {
              {-1,0},
              {1,0},
              {0,-1},
