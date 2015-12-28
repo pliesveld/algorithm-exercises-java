@@ -16,22 +16,56 @@ import java.util.Set;
 import edu.princeton.cs.algs4.In;
 import edu.princeton.cs.algs4.StdOut;
 
+/**
+ * Boggle is 4x4 (typically) grid of tiles marked with a letter.  
+ * 
+ * A  T  E  E
+ * A  P  Y  O
+ * T  I  N  U
+ * E  D  S  E
+ *
+ *
+ * The goal is to find words in the grid.  A word can be formed by connecting adjacent
+ * tiles ( horizontally, vertically, or diagonally ).  Each tile may only be used once
+ * when forming a word.  The starting character in the word may be any letter.
+ * 
+ * For example, the word U N I T E D is found by following the third row from right to left,
+ * and then down two.
+ * 
+ * Given a list of words known, a dictionary, a breadth-first-search is performed from each 
+ * starting location.  Words are checked during each fringe expansion, and if they are found to 
+ * be in the dictionary, they are returned as a solution.
+ *
+ * The Trie provides a criticial optimization by pruning the search tree if the sequence
+ * of characters composed so far, known as a prefix, is not found to be the root of
+ * any words in the dictionary. 
+ *
+ */
 public class BoggleSolver
 {
+    /**
+    */
 	private class Dictionary
 	{
 	    private Set<String> wordList = new HashSet<String>();
 		private Trie trie = new Trie();
 
-	    private int max_word = 0;
+	    private int max_word = 0;            // length of max word
 	    
-    
+        /**
+         * Adds word to dictionary
+         * @param w word to add
+         */
 	    private void addWord(final String w)
 	    {
 	    	wordList.add(w);
 	    	trie.put(w,BoggleSolver.this.wordLenScore(w));
 	    }
 
+        /**
+         * Construct a dictionary from a BufferedReader
+         * @param in BufferedReader to read line at a time
+         */
 	    public <F extends BufferedReader> Dictionary(F in) throws IOException {
 	        String w;
 	        int max = 0;
@@ -49,6 +83,10 @@ public class BoggleSolver
 
 	    }
 
+        /**
+         * Construct a dictionary from an array of strings
+         * @param dictionary array of words
+         */
 	    public Dictionary(String[] dictionary) {
 	    	int max = 0;
 	    	for(String w : dictionary)
@@ -61,11 +99,19 @@ public class BoggleSolver
 		}
 	    
 
+        /**
+         * Is w exist?
+         * @param w word to check existance
+         * @return word exists
+         */
 		boolean isWord(String w)
 	    {
 	        return wordList.contains(w);
 	    }
 		
+        /**
+         * @return length of longest word in dictionary
+         */
 	    public int getMaxWordSize()
 	    {
 	    	return max_word;
@@ -73,11 +119,24 @@ public class BoggleSolver
 
 	}
 	
+
+    /**
+     * Represents the actions available to a searchnode.  Once a tile 
+     * is selected, all adjacent tiles are available as actions.  This enum
+     * maintains the cardinal mapping to row / col offsets.
+     *
+     * Maintains compliment actions to prevent immedate backtracking along 
+     * path just taken.
+     */
 	private enum Action
 	{ 
 	    NORTH(0,1), NORTHEAST(1,1), EAST(1,0), SOUTHEAST(1,-1), SOUTH(0,-1), SOUTHWEST(-1,-1), WEST(-1,0), NORTHWEST(-1,1);
 
 
+        /**
+         * @param x column
+         * @param y row
+         */
 	    Action(int x, int y) { this.d_x = x; this.d_y = y; }
 
 	    private final int d_x;
@@ -106,10 +165,18 @@ public class BoggleSolver
 
 	
 	
+    /**
+     * Utility class representing a unique tile
+     * by tuple x, y coordinates
+     */
 	private class Location {
 		protected int x;
 		protected int y;
 
+        /**
+         * @param _x column
+         * @param _y row
+         */
 		Location(int _x, int _y) {
 			this.x = _x;
 			this.y = _y;
@@ -164,10 +231,11 @@ public class BoggleSolver
 			return sb.toString();
 		}
 
-		/*
-		 * Advance this location's coordinates
+		/**
+		 * Advance this location's coordinates by the deltas
+         * represented in the action a
 		 * 
-		 * @param a: cardinal direction
+		 * @param a cardinal direction
 		 */
 		void advance(Action a)
 		 {
@@ -192,6 +260,11 @@ public class BoggleSolver
 			this.y += d_y;
 		}
 
+        /**
+         * Given this location and an action a, return the location
+         * if this location took action a
+         * @param a cardinal direction
+         */
 		Location adjacent(Action a)
 		{
 			final int width = BoggleSolver.this.getMaxBoardWidth();
@@ -228,11 +301,18 @@ public class BoggleSolver
 
 	}
 
+    /**
+     * Given a location, remove the actions that would put
+     * the location outside of the boundry borders.
+     * 
+     * @param initial location to query
+     */
     private EnumSet<Action> initial_actions(Location initial)
     {
 		final int width = BoggleSolver.this.getMaxBoardWidth();
 		final int height = BoggleSolver.this.getMaxBoardHeight();
 
+        // TODO: move to static final
         final EnumSet<Action> east  = EnumSet.of(Action.NORTHEAST, Action.EAST, Action.SOUTHEAST);
         final EnumSet<Action> west  = EnumSet.of(Action.NORTHWEST, Action.WEST, Action.SOUTHWEST);
         final EnumSet<Action> north = EnumSet.of(Action.NORTHWEST, Action.NORTH, Action.NORTHEAST);
@@ -254,7 +334,13 @@ public class BoggleSolver
         return actions;
     }
 	
-	private class State
+
+    /**
+     * State of the SearchNode as it searches through the the tiles.  Maintains a location 
+     * of the tile most recently added.  A history of location tiles already visited, the previous
+     * action taken, a reference to the board and a list of characters of the word composed so far.
+     */
+	private class State  //TODO: refactor to more descriptive name
 	{
 	    private Location loc;
 
@@ -264,14 +350,12 @@ public class BoggleSolver
 	    private List<Character> word;
 	    
 
-	    State(State rhs)
-	    {
-	        this.loc = new Location(rhs.loc);
-	        (this.visited = new HashSet<Location>()).addAll(rhs.visited);
-	        this.word = new ArrayList<Character>(rhs.word);
-	        this.prev = rhs.prev;
-	        this.board = rhs.board;
-	    }
+        /** 
+         * Constructor stores a reference to the current board, 
+         * and the starting location as an origin of this search tree
+         * @param board game board reference
+         * @param loc starting location in game board
+         */
 
 	    State(BoggleBoard board, Location loc)
 	    {
@@ -282,6 +366,23 @@ public class BoggleSolver
 	        addLocationToWord();
 	    }
 
+        /**
+         * Copy constructor
+         * @param rhs makes a copy of another state
+         */
+	    State(State rhs)
+	    {
+	        this.loc = new Location(rhs.loc);
+	        (this.visited = new HashSet<Location>()).addAll(rhs.visited);
+	        this.word = new ArrayList<Character>(rhs.word);
+	        this.prev = rhs.prev;
+	        this.board = rhs.board;
+	    }
+
+        /**
+         * Utility function takes the given location, and adds the letter
+         * found in the board to the list of characters observed so far.
+         */
 	    void addLocationToWord()
 	    {
 	        this.visited.add(this.loc);
@@ -295,6 +396,10 @@ public class BoggleSolver
 	            this.word.add('U');
 	    }
 
+        /**
+         * Constructs a String object from the List of characters
+         * @return word as a String
+         */
 	    String getWord()
 	    {
 	        StringBuilder sb = new StringBuilder(word.size());
@@ -305,11 +410,18 @@ public class BoggleSolver
 	        return sb.toString();
 	    }
 
+        /**
+         * Returns valid actions available to this search node.
+         * A search node may not 
+         *  1) visit a location outside the board. 
+         *  2) take the previous action's complement
+         *  3) visit a location previously visited
+         */
 	    EnumSet<Action> available_actions()
 	    {
 	        EnumSet<Action> actions = initial_actions(this.loc);
 
-	        if(this.prev != null)
+	        if(this.prev != null) // TODO: unneccesary
 	            actions.remove(Action.complement.get(this.prev));
 
 	        EnumSet<Action> visited_history = EnumSet.noneOf(Action.class);
@@ -325,6 +437,13 @@ public class BoggleSolver
 	        return actions;
 	    }
 
+        /**
+         * Advanced a state's location by this action
+         * and then add the new location's tile letter to
+         * the word found so far
+         *
+         * @param a cardinal direction
+         */
 	    void advance(Action a)
 	    {
 	        this.prev = a;
@@ -333,11 +452,23 @@ public class BoggleSolver
 	        addLocationToWord();
 	    }
 
+        /**
+         * Has this search node visited location
+         * @param l location
+         * @return has l been visited 
+         */
 	    boolean has_visited(Location l)
 	    {
 	        return this.visited.contains(l);
 	    }
 
+
+        /**
+         * Constructs a new state object from this object
+         * and advances the newly created state from
+         * by action a
+         * @param a cardinal direction
+         */
 	    public State next(Action a)
 	    {
 	        State s = new State(this);
@@ -393,7 +524,10 @@ public class BoggleSolver
 	}
 
 
-	// Returns the set of all valid words in the given Boggle board, as an Iterable.
+	/**
+     * Returns the set of all valid words in the given Boggle board, as an Iterable.
+     * @param board to compute words
+     */
     public Iterable<String> getAllValidWords(BoggleBoard board)
     {
 
@@ -404,15 +538,22 @@ public class BoggleSolver
     	setMaxBoardHeight(board_height);
     	int maxWordSize = dict.getMaxWordSize();
     	
+        /**
+         * Maintain a queue of states to be explored
+         */
         LinkedList<State> fringe = new LinkedList<State>();
         
+        /*
+         * Add all starting locations to the queue.
+         */
         for(int i = 0; i < board_width; ++i)
             for(int j = 0; j < board_height; ++j)
                 fringe.add(new State(board,new Location(i,j)));
 
         
-        
-//        StdOut.println("mws:" + maxWordSize);
+        /*
+         * Maintains List of words found so far.
+         */
     	Set<String> found = new LinkedHashSet<>();
     	State s;
         while ((s = fringe.poll()) != null)
@@ -421,6 +562,7 @@ public class BoggleSolver
          //   System.out.println("Current: " + s);
 
             String w = s.getWord();
+            
             if(dict.isWord(w) && w.length() >= MIN_WORD_SIZE)
                 found.add(w);
 
@@ -436,11 +578,14 @@ public class BoggleSolver
 
             for(State ns : next_states)
             {
+                    /**
+                     * If the prefix, word computed so far, is not a valid prefix 
+                     * in the Trie data structure, then no word could possiblely be 
+                     * found from this state.  And would be pruned by not being 
+                     * added back to the fringe queue.
+                     */
             	if(BoggleSolver.this.dict.trie.anyKeyHasPrefix(ns.getWord()))
             		fringe.push(ns);
-          //  	Iterator<String> it_pre = BoggleSolver.this.dict.trie.keysWithPrefix(ns.getWord()).iterator();
-           // 	if(it_pre.hasNext())
-           // 		fringe.push(ns);
             }
 
         }
@@ -458,6 +603,10 @@ public class BoggleSolver
     	return 0;
     }
     
+    /**
+     * @param word
+     * @return score of word by length
+     */
     private int wordLenScore(String word)
     {
         switch(word.length())
