@@ -9,6 +9,15 @@ import java.util.NoSuchElementException;
 import edu.princeton.cs.algs4.StdStats;
 
 
+/**
+ * A deque is a double-ended linked-list queue.  
+ * Addition and Removal are supported on either end of the queue.
+ * The current number of nodes in the deque is tracked.
+ *
+ * performance:
+ * indexing: O(n)
+ * insert/deletion: worst O(1)
+ */
 public class Deque<Item> implements Iterable<Item> {
 
     private Node first;

@@ -7,12 +7,31 @@ import java.lang.IllegalArgumentException;
 import java.util.NoSuchElementException;
 import edu.princeton.cs.algs4.StdStats;
 
+/*
+ * A randomized queue is a datastructure that supports the operation to iterate over all
+ * elements in a randomized order.
+ *
+ * The underlying datastructure is a resizing array.  Elements of the array are reserved for the queue or null.
+ * When attempting to insert a new element into the array that causes the array to be full, the array
+ * is resized to double its length, and the old elements are copied into the new array.
+ *
+ * Conversely, when an array has removed elements such that the size of the array ( number of elements 
+ * in the queue ) is half of the number of elements allocated for the array ( the length ), then the
+ * length is reduced to by half.
+ *
+ *
+ * performance:
+ * Indexing:    O(1)
+ * Insertion:   O(1) amortized.  O(n) worst
+ * Deletion: O(1) amortized.
+ *
+ */
 public class RandomizedQueue<Item> implements Iterable<Item>
 {
-    private Item[] array;
-    private int array_len = 10;
-    private int array_size = 0;
-    private int array_offs = 0;
+    private Item[] array;               // Queue storage
+    private int array_len = 10;         // Size of array allocated
+    private int array_size = 0;         // Number of elements in the queue
+    private int array_offs = 0;         // Offset from start of array containing the first queue element
 
     /**
      * Construct an empty randomized queue
@@ -28,6 +47,8 @@ public class RandomizedQueue<Item> implements Iterable<Item>
     /**
      * Resizes array to new length, and copies elements from old array
      * into new array.  Updates array_len, and resets array_offs to zero.
+     *
+     * @param newlen new value for array length to resize to
      */
     private void resizeArray(int newlen)
     {
@@ -99,6 +120,10 @@ public class RandomizedQueue<Item> implements Iterable<Item>
 
     /**
      * helper function to swap elements indexed in array a, at locations i and j.
+     *
+     * @param a Array of Item
+     * @param i valid index inside a
+     * @param j valid index inside a
      */
     private static <Item> void swap(Item[] a, int i, int j)
     {
@@ -111,6 +136,9 @@ public class RandomizedQueue<Item> implements Iterable<Item>
     /**
      * Remove and return a random item from the queue
      * @return item Item from a random location inside the queue
+     * A random index is chosen.  The value at that location is swapped with the 
+     * location at the end of the array.  Then the element at the end of the array
+     * is removed from the queue, and it's value is returned.
      */
     public Item dequeue()
     {
@@ -127,8 +155,6 @@ public class RandomizedQueue<Item> implements Iterable<Item>
          */
         int rnd_index = (array_offs + StdRandom.uniform(size))%array_len;
         swap(array,array_offs,rnd_index);
-
-
 
         int index = array_offs;
         Item ret = array[index];
