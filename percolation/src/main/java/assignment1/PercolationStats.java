@@ -12,6 +12,11 @@ import java.lang.Math;
 
 
 
+/*
+ * Starts with a completely closed grid of cell sites, and randomly opens sites.  
+ * Collects statistics on the number of steps required until system percolation is achieved.
+ *
+ */
 public class PercolationStats {
 
     private double mean = 0;
