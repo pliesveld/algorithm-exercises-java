@@ -6,42 +6,116 @@ import java.net.URL;
 import java.util.*;
 import java.util.regex.Pattern;
 
+/**
+ * A Wordnet is a lexical database of words and relationships among them.
+ *
+ * A synset is a set of words and a short description describing their semantic relationship.
+ *
+ * A WordNet also stores a semantic relationship between seynsets.  One such relationship
+ * is-a is defined as follows:
+ *
+ * A hyponym (more specific synset) to a hypernym (more general synset)
+ *
+ * For example: a plant organ is a hypernym of a carrot, and a plant organ is a hypernym of plant root.
+ *
+ * This WordNet expects two files, one containing the synsets, and the other describing relationships between.
+ *
+ * These relationship relationships form a Directed Acyclic Graph (DAG).  The WordNet constructed 
+ * from these two files is expected to be a rooted DAG, where a single synset is the vertex that is the 
+ * ancestor of every other vertex.
+ *
+ */
 public class WordNet {
-    private Set<Synset> list_synset = new LinkedHashSet<WordNet.Synset>();
-    private Set<String> set_nouns = new LinkedHashSet<>();
+    private Set<Synset> list_synset = new LinkedHashSet<WordNet.Synset>();      // set of all synsets
+    private Set<String> set_nouns = new LinkedHashSet<>();                      // set of all words in all synsets
 
-    private Map<Integer, Synset> lookup_noun = new LinkedHashMap<>();
-	private Map<String, List<Integer>> word_to_synset = new LinkedHashMap<>();
+    private Map<Integer, Synset> lookup_noun = new LinkedHashMap<>();           // maps synset id -> synset obj
+	private Map<String, List<Integer>> word_to_synset = new LinkedHashMap<>();  // maps word -> list of synset ids word appears in
 	
+    /* Stores the v -> w edge representing the relationship that
+     * w is a hypernym of v.  That is of the two synsets v and w, 
+     * w is a more specific synset of synset v.
+     */
     private Digraph relation_is_a;
+
+    /*
+     * Computes common ancestors
+     */
     private SAP sap;
 
 
+    /**
+     * A single synset entry.  
+     * The id is guarenteed to be unique, however A word in a synset is not.
+     * They appear a line at a time, and are separated by a comma.  A space seperates
+     * a word from another in the word set.
+     */
     private class Synset {
         private int id;
         private String words;
         private String desc;
 
+        /**
+         * Constructor for Synset.
+         * id is unqiue.
+         * words are space separated, with each not unique among synsets
+         * 
+         * @param id unique id representing this synset
+         * @param words a string containing words
+         * @param desc description of synset
+         */
         private Synset(int id, String words, String desc) {
             this.id = id;
             this.words = words;
             this.desc = desc;
         }
 
+        /**
+         * @return this synset's unique id
+         */
         public int getId() {
             return id;
         }
 
+        /**
+         * @return this synset's words string
+         */
         public String getWords() {
             return words;
         }
 
+        /**
+         * @return this synset's description
+         */
         public String getDesc() {
             return desc;
         }
+
+        // TODO: this synset is used in hash, where is hashCode ??
     }
     
-    // constructor takes the name of the two input files
+    /** 
+     * Constructor takes the name of the two input files synsets hypernyms.
+     * Both text files containg an entry per line.
+     *
+     * The Synset file takes on form of:
+     * <id>,<words>,<description>
+     *
+     * <id> is unique, and increasing
+     * The words within <words> are separated by a space
+     * The string <description> may contain the comma token
+     *
+     * The hypernyms file takes on the form of:
+     * <hyponym id>,<hypernym id>[, hypernym id]...
+     *
+     * Where the <hyponym> is the synset id of the more general
+     * synset and has a relationship to each following synset id as
+     * being a hypernym of the first.
+     *
+     *
+     * @param synsets filename containing synsets
+     * @param hypernyms filename containing hypernyms
+     */
     public WordNet(String synsets, String hypernyms) {
         throwIfNull(synsets);
         throwIfNull(hypernyms);
@@ -158,6 +232,12 @@ public class WordNet {
         sap = new SAP(relation_is_a);
     }
 
+    /** Verify graph a rooted diagraph.
+     * Iterates over all vertexes in the digraph.  If there is more than one vertex with an indegree
+     * of zero, then the diagraph has more than one root.
+     * @param graph to check for rooted
+     * @throws IllegalArgumentException if graph is not a rooted digraph
+     */
     private void verifyNoMultiRoot(Digraph graph) {
     	int V = graph.V();
     	
@@ -199,18 +279,28 @@ public class WordNet {
 		
 	}
 
-	// returns all WordNet nouns
+	/** @return all WordNet nouns */
     public Iterable<String> nouns() {
         return set_nouns;
     }
 
-    // is the word a WordNet noun?
+    /** @return is the word a WordNet noun? */
     public boolean isNoun(String word) {
         throwIfNull(word);
         return set_nouns.contains(word);
     }
 
-    // distance between nounA and nounB (defined below)
+    /**
+     * Computes the distance between word nounA and nounB.
+     *
+     * Defines the semantic relatedness of two nouns.  
+     *
+     * distance( A , B ) = distance is the minimum length of any ancestral path
+     * between any synset v of A and any synset of w of B.
+     *
+     * @param nounA word to check distance
+     * @param nounB word to check distance
+     */
     public int distance(String nounA, String nounB) {
         throwIfNull(nounA);
         throwIfNull(nounB);
@@ -220,8 +310,12 @@ public class WordNet {
         return sap.length(word_to_synset.get(nounA), word_to_synset.get(nounB));
     }
 
-    // a synset (second field of synsets.txt) that is the common ancestor of nounA and nounB
-    // in a shortest ancestral path (defined below)
+    /** Shortest Ancestral Path between nounA and nounB.
+     * Traverses the Diagraph to find a common ancestor of nounA and nounB.  Guarenteed
+     * to be the shortest traversal distance.
+     *
+     * @return synset id of ancestor of nounA and nounB that is of the shortest distance.
+     */
     public String sap(String nounA, String nounB) {
         throwIfNull(nounA);
         throwIfNull(nounB);
@@ -239,12 +333,14 @@ public class WordNet {
         return null;
     }
 
+    /** @throws NullPointerException if @param arg is null */
     private void throwIfNull(String arg) {
         if (arg == null) {
             throw new NullPointerException("Null argument.");
         }
     }
 
+    /** @throws IllegalArgumentException if @param arg is not a noun known in the WordNet */
     private void throwIfNotWord(String arg) {
         if (!isNoun(arg)) {
             throw new IllegalArgumentException("Argument not in WordNet: " + arg);

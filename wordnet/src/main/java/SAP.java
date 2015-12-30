@@ -14,10 +14,23 @@ import java.util.Set;
 
 import edu.princeton.cs.algs4.Digraph;
 
+/**
+ * Shortest Ancestrial Path.  Given a rooted DAG, An ancestrial path is defined to be a common vertex X that is in the path from
+ * two vertexes towards the root.
+ *
+ * To compute the SAP, two parallel BFS searches are performed.  Once a node has been marked in one BFS search, if the other parallel
+ * BFS search crosses the same node, then that node is the common ancestor of both and guarenteed to be the shortest because of the
+ * property of BFS that exlpores nodes increasingly in depth.
+ * 
+ */
 public class SAP {
 
     private Digraph graph;
  
+    /**
+     * Constructor for dia. Copies digraph locally
+     * @param G digraph
+     */
     public SAP(Digraph G) {
         if (G == null)
             throw new NullPointerException("Directed Graph parameter was null.");
@@ -26,12 +39,18 @@ public class SAP {
 
     }
 
+
+    /**
+     * A utility class used in computing a path.  Maintaks a node that is common root,
+     * and records accompaning cost.
+     */
     private class PathNode
     implements Comparable<PathNode>
     {
     	private int node;
     	private int cost;
     	
+        /** Constructor for PathNode @param node node id of ancestor @param cost cost to node */
 		public PathNode(int node, int cost) {
 			super();
 			this.node = node;
@@ -39,10 +58,12 @@ public class SAP {
 			
 		}
 		
+        /** @return node id of ancestor found */
 		public int getNode() {
 			return node;
 		}
 
+        /** @return cost of ancestor found */
 		public int getCost() {
 			return cost;
 		}
@@ -80,7 +101,19 @@ public class SAP {
     	
     }
     
-    // length of shortest ancestral path between v and w; -1 if no such path
+    /**
+     * Computes the distance between word nounA and nounB.
+     *
+     * Defines the semantic relatedness of two nouns.  
+     *
+     * distance( A , B ) = distance is the minimum length of any ancestral path
+     * between any synset v of A and any synset of w of B.
+     *
+     * @param v synset
+     * @param w synset
+     * @return distance between v and w of shortest ancestor, -1 if none found
+     */
+
     public int length(int v, int w) {
         verifyVertex(v);
         verifyVertex(w);
@@ -174,8 +207,14 @@ public class SAP {
 
 
     }
-    
-    // a	 common ancestor of v and w that participates in a shortest ancestral path; -1 if no such path
+
+
+     /** Shortest Ancestral Path between synset v and synset w.
+     * Traverses the Diagraph to find a common ancestor of v and w.  Guarenteed
+     * to be the shortest traversal distance.
+     *
+     * @return synset id of ancestor of v and w that is of the shortest distance.
+     */
     public int ancestor(int v, int w) {
         verifyVertex(v);
         verifyVertex(w);
@@ -283,7 +322,11 @@ public class SAP {
         return best.getNode();
     }
 
-    // length of shortest ancestral path between any vertex in v and any vertex in w; -1 if no such path
+    /**
+     * Given a collection of nodes v and w, perform a length 
+     * calculation betewen any node in v and any node in w and
+     * @return shortest length between any two nodes in v and w.
+     */
     public int length(Iterable<Integer> v, Iterable<Integer> w) {
     	if(v == null || w == null)
     		throw new NullPointerException("length supplied with null argument.");
@@ -314,7 +357,11 @@ public class SAP {
     	return b_len;
     }
 
-    // a common ancestor that participates in shortest ancestral path; -1 if no such path
+    /**
+     * Given a collection of nodes v and w, perform a SAP
+     * calculation betewen any node in v and any node in w and
+     * @return the ancestor with the shortest length between any two nodes in v and w.
+     */
     public int ancestor(Iterable<Integer> v, Iterable<Integer> w) {
     	if(v == null || w == null)
     		throw new NullPointerException("ancestor supplied with null argument.");
@@ -355,6 +402,7 @@ public class SAP {
     	return ancestor(b_v,b_w);
     }
 
+    /** Verify Vertex @param x is valid inside digraph */
     private void verifyVertex(int x) {
         if (x >= 0 && x < graph.V())
             return;
