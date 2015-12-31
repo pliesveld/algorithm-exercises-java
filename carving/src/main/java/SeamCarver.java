@@ -7,6 +7,14 @@ import edu.princeton.cs.algs4.StdOut;
 import java.awt.Color;
 import java.util.LinkedList;
 
+/**
+ * SeamCarver takes a picture image and removes a seam from the image.
+ *
+ * Each pixel in the image calculate an energy value.  These values are used
+ * when finding the seam to remove to pick a seam that doesn't cut through 
+ * the "interesting" parts of the image.
+ *
+ */
 public class SeamCarver {
 	
 	
@@ -14,6 +22,10 @@ public class SeamCarver {
 	private double[][] energy;
 	
 	
+    /**
+     * Constructor for SeamCarver.  Copies Picture image, and calculates initial pixel energy.
+     * @param picture
+     */
 	public SeamCarver(Picture picture) // create a seam carver object based on
 										// the given picture
 	{
@@ -21,6 +33,10 @@ public class SeamCarver {
 		calc_energy_while();
 	}
 	
+    /**
+     * Calculates energy for all pixels.
+     * Edge pixels have an energy value of 1000.
+     */
 	private void calc_energy_while()
 	{
 		int w = width();
@@ -54,6 +70,12 @@ public class SeamCarver {
 		
 	}
 
+    /**
+     * Breaks Color object into three integer RGB values
+     * @param color Color extracted from image
+     * @param colors array of color values in RGB
+     * @return if colors is of the right length, it is returned, otherwise a new array is allocated
+     */
 	private int[] getRGBColorComponents(Color color, int[] colors)
 	{
 		int[] ret = null;
@@ -71,6 +93,22 @@ public class SeamCarver {
 		return ret;
 	}
 	
+    /**
+     * Computes energy for individual pixel
+     *
+     * Energy of pixel (x, y) = sqrt( x-gradient(x, y) + y-gradient(x, y) )
+     *
+     * where x-gradient(x, y) = R_x(x,y)^2 + G_x(x,y)^2 + B_x(x,y)^2
+     *
+     * Where the central differences, R_x, G_x, B_x, are the differences 
+     * between pixel(x + 1, y) and pixel (x - 1, y)
+     *
+     * Similiarly for the y-gradient.
+     *
+     * @param col Column of pixel
+     * @param row Row of pixel
+     * @return energy Value of pixel
+     */
 	private double compute_energy_of(int col, int row) {
 
 		int[][] rgb_colors = new int[3][2];
@@ -99,17 +137,20 @@ public class SeamCarver {
 		
 	}
 
-	public Picture picture() // current picture
+    /** @return Copy of picture image */
+	public Picture picture() 
 	{
 		return new Picture(this.picture);
 	}
 
-	public int width() // width of current picture
+    /** @return Current Picture Width */
+	public int width()
 	{
 		return this.picture.width();
 	}
 
-	public int height() // height of current picture
+    /** @return Current Picture Height */
+	public int height()
 	{
 		return this.picture.height();
 	}
@@ -117,8 +158,10 @@ public class SeamCarver {
 	/**
 	 * Dual-gradiuent energy function.  Measures importance of each pixel.  The heigher
 	 * the energy, the less liekly that the pixel will be included as part of a seam.
+     *
+     * @param x column
+     * @param y row
 	 */
-	
 	public double energy(int x, int y) // energy of pixel at column x and row y
 	{
 		if(x < 0 || x >= width())
@@ -130,6 +173,13 @@ public class SeamCarver {
 		return energy[x][y];
 	}
 
+    /** Utility class, computres unique id for
+     * specific pixel located at col row.
+     *
+     * @param col column of pixel
+     * @param row row of pixel
+     * @return unique id for pixel
+     */
 	private int vertOf(int col, int row)
 	{
 		if(col < 0 || col >= width())
@@ -141,6 +191,12 @@ public class SeamCarver {
 		return 2 + (width()*row + col);
 	}
 	
+    /** Utility class.  Given a unique id
+     * returns the pixel coordinates.
+     * @param vert vertex id to compute from
+     * @param coord array to store coordinates in
+     * @return array contaiing pixel coordinate
+     */
 	private int[] fromVert(int vert, int[] coord) {
 		int[] ret;
 		int w = width();
@@ -167,6 +223,19 @@ public class SeamCarver {
 	private static final int SOURCE_VERTEX = 0;
 	private static final int SINK_VERTEX = 1;
 	
+    /** Computes a vertical seam.
+     *
+     * A sequence of row coordinates.  Each value may not be different from the prior 
+     * value by more than one.  Ie, the pixel values they represent are connected adjacently.
+     *
+     * The solution creates two virtual nodes at each end, with a weighted cost of 0.  Each intermediatary
+     * node uses the pixel energy value as the cost in the edge weight.  Dijkstra's algorithm is then
+     * computed to find the Shortest Path from the left to the right side. 
+     *
+     * This will be the seam pixels.
+     *
+     * @return vertical seam.
+     */
 	public int[] findVerticalSeam() // sequence of indices for vertical seam
 	{
 
@@ -311,6 +380,19 @@ public class SeamCarver {
 	}
 
 	
+    /** Computes a horizontal seam.
+     *
+     * A sequence of col coordinates.  Each value may not be different from the prior 
+     * value by more than one.  Ie, the pixel values they represent are connected adjacently.
+     *
+     * The solution creates two virtual nodes at each end, with a weighted cost of 0.  Each intermediatary
+     * node uses the pixel energy value as the cost in the edge weight.  Dijkstra's algorithm is then
+     * computed to find the Shortest Path from the top to the bottom side. 
+     *
+     * This will be the seam pixels.
+     *
+     * @return horizontal seam.
+     */
 
 	public int[] findHorizontalSeam() // sequence of indices for horizontal seam
 	{
@@ -460,6 +542,13 @@ public class SeamCarver {
 	}
 
 
+    /**
+     * Removes seam.
+     *
+     * Makes image copy, pixel per pixel, when seam is encountered
+     * adjust src to skip pixel.
+     * @param seam array of seam coordinates
+     */
 	public void removeHorizontalSeam(int[] seam) // remove horizontal seam from
 													// current picture
 	{
@@ -507,6 +596,13 @@ public class SeamCarver {
 
 	}
 
+    /**
+     * Removes seam.
+     *
+     * Makes image copy, pixel per pixel, when seam is encountered
+     * adjust src to skip pixel.
+     * @param seam array of seam coordinates
+     */
 	public void removeVerticalSeam(int[] seam) // remove vertical seam from
 												// current picture
 	{
@@ -553,17 +649,31 @@ public class SeamCarver {
 		calc_energy_while();
 	}
 
+    /** Utility function verifies seam is valid.
+     * @param seam to check
+     * @param width of seam
+     * @param height of seam
+     */
 	private void verifyVerticalSeam(int[] seam,int width, int height) {
 		verifySeamArray(seam,false,width,height);
 	}
 
+    /** Utility function verifies seam is valid.
+     * @param seam to check
+     * @param width of seam
+     * @param height of seam
+     */
 	private void verifyHorizontalSeam(int[] seam,int width, int height) {
 		verifySeamArray(seam,true,width,height);
 	}
 	
-	/*
+	/**
 	 * A seam is invalid if the length of the array is invalid or if the array is not a valid 
 	 * seam.  ( either an entry is outside its prescribed range or two adjacent entries differ by more than 1 )
+     * @param seam to check
+     * @param direction of seam, true = horizontal, false = vertical
+     * @param width of seam
+     * @param height of seam
 	 */
 	private void verifySeamArray(int[] seam, boolean dir, int width, int height) {
 		
