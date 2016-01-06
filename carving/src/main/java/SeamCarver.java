@@ -14,6 +14,10 @@ import java.util.LinkedList;
  * when finding the seam to remove to pick a seam that doesn't cut through 
  * the "interesting" parts of the image.
  *
+ * When a seam is selected to be removed, a EdgeWeightedGraph is computed where
+ * the edge weights are the energy values of the pixels.  Then a shortest-path
+ * is computed from source to sink, selected the pixels along the seam that
+ * have the lowest energy cost path.
  */
 public class SeamCarver {
 	
