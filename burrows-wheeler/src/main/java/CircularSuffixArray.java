@@ -2,8 +2,18 @@ import java.util.Arrays;
 import java.util.Comparator;
 
 
-
-
+/**
+ * Circular Suffix Array generates a sorted array of N circular circular 
+ * suffixes of a string of length N.
+ *
+ * Given the input string of ABC
+ * The following suffix arrays are generated:
+ *
+ * ABC
+ * BCA
+ * CAB
+ * 
+ */
 public class CircularSuffixArray {
 
 	final private int N;
@@ -25,6 +35,9 @@ public class CircularSuffixArray {
 			
 			};
 	
+    /** Constructor generates a circular suffix array 
+     * @param s string to generate suffix array from
+     */
 	public CircularSuffixArray(String s) // circular suffix array of s
 	{
 		if(s == null)
@@ -58,11 +71,9 @@ public class CircularSuffixArray {
 			toOrig[i] = mat_char[i][N];
 		}
 			
-	
 /*
 		for(int i = 0; i < N; i++)
 		{
-//			String s_out = new String(mat_char[i],0,N); 
 			int s_idx = (int)mat_char[i][N];
 			System.err.printf("%-2d: xxxxxxxxx     %d\n",i,s_idx);
 
@@ -71,12 +82,18 @@ public class CircularSuffixArray {
 
 	}
 
+    /** @return length of input string */
 	public int length() // length of s
 	{
 		return N;
 	}
 
-	public int index(int i) // returns index of ith sorted suffix
+    /**
+     * Maps index from sorted array to original array.
+     * @param i index in sorted array
+     * @return index of ith sorted suffix
+     */
+	public int index(int i)
 	{
 		if(i < 0 || i >= N)
 			throw new IndexOutOfBoundsException("Parameter i is out of bounds.  Must be between 0 and " + (N-1));
@@ -84,12 +101,9 @@ public class CircularSuffixArray {
 		return toOrig[i];
 	}
 
-
-	public static void main(String[] args) // unit testing of the methods
-	// (optional)
+	public static void main(String[] args)
 	{
 		String testString = "ABRACADABRA!";
-//		String testString = "ABC";
 		CircularSuffixArray csa = new CircularSuffixArray(testString);
 		//assert csa.length() == testString.length();
 	}

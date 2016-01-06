@@ -2,6 +2,14 @@ import edu.princeton.cs.algs4.BinaryStdIn;
 import edu.princeton.cs.algs4.BinaryStdOut;
 
 
+/**
+ * The main idea of move-to-front encoding is to maintain an 
+ * ordered sequence of the characters in the alphabet, and repeatedly
+ * read in a character fro the input message, print out the position 
+ * in which that character appears, and move that character to the front
+ * of the sequence.
+ *
+ */
 public class MoveToFront {
 	
 	private static char[] initializeByteArray()
@@ -16,7 +24,7 @@ public class MoveToFront {
 	}
 	
 	
-    // apply move-to-front encoding, reading from standard input and writing to standard output
+    /** Apply move-to-front encoding, reading from standard input and writing to standard output */
     public static void encode()
     {	
     	char[] alphabet = initializeByteArray();
@@ -52,7 +60,7 @@ public class MoveToFront {
 
     }
 
-    // apply move-to-front decoding, reading from standard input and writing to standard output
+    /** Apply move-to-front decoding, reading from standard input and writing to standard output */
     public static void decode()
     {
     	char[] alphabet = initializeByteArray();
