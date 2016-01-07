@@ -26,6 +26,7 @@ public class BaseballElimination // create a baseball division from given
 	private String[] teams; // Index 0 is empty
 	
 	private final boolean DEBUG;
+	private final boolean DEBUG_NETWORK;
 	
 	private static final int SOURCE_VERTEX = 0;
 	private final int SINK_VERTEX; // Last vertex in graph
@@ -104,14 +105,24 @@ public class BaseballElimination // create a baseball division from given
 			
 		} while(++i_team < nTeams);
 
+        /* Check for baseball.debug property */
 		boolean will_debug = false;
 		try {
 			will_debug = Boolean.valueOf(System.getProperty("baseball.debug"));
-		}catch(SecurityException e) {
+		} catch(SecurityException e) {
 			will_debug = false;
 		}		
 		DEBUG = will_debug;
-		
+
+        /* Check for baseball.network.debug property */
+		boolean will_debug_network = false;
+		try {
+			will_debug_network = Boolean.valueOf(System.getProperty("baseball.network.debug"));
+		} catch(SecurityException e) {
+			will_debug_network = false;
+		}		
+		DEBUG_NETWORK = will_debug_network;
+
 		determine_trivial_eliminations();
 		
 		if(DEBUG)
@@ -327,8 +338,11 @@ public class BaseballElimination // create a baseball division from given
 			}
 		}
 
-		if(DEBUG && false)
+		if(DEBUG && DEBUG_NETWORK)
+        {
+            StdOut.println("FlowNetwork for " + team);
 			StdOut.println(network);
+        }
 		
 		return network;
 	}
@@ -337,6 +351,12 @@ public class BaseballElimination // create a baseball division from given
 		FlowNetwork network = buildNetworkAgainstTeam(team);
 		
 		FordFulkerson max = new FordFulkerson(network,SOURCE_VERTEX,SINK_VERTEX);
+
+		if(DEBUG && DEBUG_NETWORK)
+        {
+            StdOut.println("Maximum Flow for " + team + " after FordFulkerson");
+			StdOut.println(network);
+        }
 
 		Set<Integer> min_cut = new LinkedHashSet<Integer>();
 		for(int v = 1; v <= numberOfTeams();v++)
@@ -361,10 +381,10 @@ public class BaseballElimination // create a baseball division from given
 			
 			if(edge.residualCapacityTo(vertex_to) == 0)
 			{ // if edge from source is full
-				if(DEBUG && false)
+				if(DEBUG && DEBUG_NETWORK)
 					StdOut.println("e    full: " + edge);
 			} else {
-				if(DEBUG && false)
+				if(DEBUG && DEBUG_NETWORK)
 				{
 					StdOut.println("e partial: " + edge);
 				}
